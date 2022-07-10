@@ -5,13 +5,18 @@ import {
   Text,
   View,
   Dimensions,
+  FlatList,
 } from "react-native";
-import { ButtonWithIcon } from "../components";
+import { ButtonWithIcon, FoodCard } from "../components";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/constants";
 
 const RestaurantScreen = ({ route, navigation }) => {
   const { restaurant } = route.params;
+
+  const onTapFood = (item) => {
+    navigation.navigate("FoodDetailsPage", { food: item });
+  };
 
   const screenWidth = Dimensions.get("screen").width;
 
@@ -50,6 +55,12 @@ const RestaurantScreen = ({ route, navigation }) => {
             </Text>
           </View>
         </ImageBackground>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={restaurant.foods}
+          renderItem={({ item }) => <FoodCard item={item} onTap={onTapFood} />}
+          keyExtractor={(item) => `${item._id}`}
+        />
       </View>
       <View></View>
     </View>
