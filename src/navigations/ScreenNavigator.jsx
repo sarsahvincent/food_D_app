@@ -9,7 +9,12 @@ import HomeScreen from "../screens/HomeScreen";
 import FoodDetailsScreen from "../screens/FoodDetailsScreen";
 import RestaurantScreen from "../screens/RestaurantScreen";
 import SearchPageScreen from "../screens/SearchPageScreen";
+import OfferScreen from "../screens/OfferScreen";
+import CartScreen from "../screens/CartScreen";
+import AccountScreen from "../screens/AccountScreen";
 import { COLORS } from "../constants/constants";
+import { useSelector } from "react-redux";
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -29,16 +34,33 @@ export default function ScreenNavigator() {
           name="Landing"
           component={LandingScreen}
         />
-        <Stack.Screen name="HomeStack" component={MyTabs} />
-        <Stack.Screen name="SearchPage" component={SearchPageScreen} />
-        <Stack.Screen name="RestaurantPage" component={RestaurantScreen} />
-        <Stack.Screen name="FoodDetailsPage" component={FoodDetailsScreen} />
+        <Stack.Screen name="HomeTabs" component={HomeTabs} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-function MyTabs() {
+function HomeScreens() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerMode: "screen",
+        headerTintColor: "white",
+        headerShown: false,
+        headerStyle: { backgroundColor: COLORS.primary },
+      }}
+    >
+      <Stack.Screen name="HomePage" component={HomeScreen} />
+      <Stack.Screen name="SearchPage" component={SearchPageScreen} />
+      <Stack.Screen name="RestaurantPage" component={RestaurantScreen} />
+      <Stack.Screen name="FoodDetailsPage" component={FoodDetailsScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function HomeTabs() {
+  const { cart } = useSelector((state) => state.UserSlice);
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -49,7 +71,7 @@ function MyTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeScreens}
         options={{
           tabBarLabel: "Home",
           tabBarIcon: ({ color, size }) => (
@@ -59,7 +81,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Offer"
-        component={HomeScreen}
+        component={OfferScreen}
         options={{
           tabBarLabel: "Offer",
           tabBarIcon: ({ color, size }) => (
@@ -69,18 +91,18 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Cart"
-        component={HomeScreen}
+        component={CartScreen}
         options={{
           tabBarLabel: "Cart",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="cart" color={color} size={size} />
           ),
-          tabBarBadge: 3,
+          tabBarBadge: cart?.length > 0 ? cart?.length : null,
         }}
       />
       <Tab.Screen
         name="Account"
-        component={HomeScreen}
+        component={AccountScreen}
         options={{
           tabBarLabel: "Profile",
           tabBarIcon: ({ color, size }) => (

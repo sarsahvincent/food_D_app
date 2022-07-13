@@ -14,7 +14,7 @@ import {
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { getLocationDetails } from "../redux/reducers/UserSlice";
+import { getLocationDetails, getPostalCode } from "../redux/reducers/UserSlice";
 import { useDispatch } from "react-redux";
 const screenWidth = Dimensions.get("screen").width;
 
@@ -52,11 +52,12 @@ const LandingScreen = ({ navigation }) => {
       for (let item of addressResponse) {
         let curentAddress = `${item.name}, ${item.street}, ${item.country}`;
         dispatch(getLocationDetails(curentAddress));
+        dispatch(getPostalCode(item?.postalCode));
         setDisplayAddress(curentAddress);
 
         if (curentAddress.length > 0) {
           setTimeout(() => {
-            navigation.navigate("HomeStack");
+            navigation.navigate("HomeTabs");
           }, 2000);
         }
         return;
@@ -99,7 +100,7 @@ const LandingScreen = ({ navigation }) => {
         )}
         {displayAddress !== "Waiting for Current Location" && (
           <TouchableOpacity
-            onPress={() => navigation.navigate("HomeStack")}
+            onPress={() => navigation.navigate("HomeTabs")}
             activeOpacity={0.5}
           >
             <View

@@ -7,20 +7,21 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 import { ButtonWithIcon, FoodCard } from "../components";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/constants";
+import { chekExistance } from "../utils/CartHelper";
+import { getCartItems } from "../redux/reducers/UserSlice";
 
 const FoodDetailsScreen = ({ route, navigation }) => {
+  const dispatch = useDispatch();
   const { food } = route.params;
-
-  console.log("food", food);
-
+  const { cart } = useSelector((state) => state.UserSlice);
+  const screenWidth = Dimensions.get("screen").width;
   const onTapFood = (item) => {
     navigation.navigate("FoodDetailsPage", { food: item });
   };
-
-  const screenWidth = Dimensions.get("screen").width;
 
   return (
     <View style={styles.container}>
@@ -70,7 +71,15 @@ const FoodDetailsScreen = ({ route, navigation }) => {
             <Text>{food.description}</Text>
           </View>
           <View style={{ height: 140 }}>
-            <FoodCard item={food} onTap={() => {}} />
+            <FoodCard
+              onTap={onTapFood}
+              item={chekExistance(food, cart)}
+              onUpdateCart={() => {
+                dispatch(getCartItems(food));
+              }}
+            />
+
+            {/* <FoodCard item={food} onTap={() => {}} /> */}
           </View>
         </View>
       </View>

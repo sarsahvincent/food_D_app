@@ -7,13 +7,18 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 import { ButtonWithIcon, FoodCard } from "../components";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/constants";
+import { chekExistance } from "../utils/CartHelper";
+import { getCartItems } from "../redux/reducers/UserSlice";
 
 const RestaurantScreen = ({ route, navigation }) => {
   const { restaurant } = route.params;
+  const { cart } = useSelector((state) => state.UserSlice);
 
+  const dispatch = useDispatch();
   const onTapFood = (item) => {
     navigation.navigate("FoodDetailsPage", { food: item });
   };
@@ -58,7 +63,19 @@ const RestaurantScreen = ({ route, navigation }) => {
         <FlatList
           showsVerticalScrollIndicator={false}
           data={restaurant.foods}
-          renderItem={({ item }) => <FoodCard item={item} onTap={onTapFood} />}
+          renderItem={
+            ({ item }) => (
+              <FoodCard
+                onTap={onTapFood}
+                item={chekExistance(item, cart)}
+                onUpdateCart={() => {
+                  dispatch(getCartItems(item));
+                }}
+              />
+            )
+
+            // <FoodCard item={item} onTap={onTapFood} />
+          }
           keyExtractor={(item) => `${item._id}`}
         />
       </View>
@@ -83,8 +100,8 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 10,
-    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#fff",
+    justifyContent: "center",
   },
 });

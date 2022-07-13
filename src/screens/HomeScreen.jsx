@@ -12,7 +12,12 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { COLORS } from "../constants/constants";
-import { fetchData, getCategories } from "../redux/reducers/UserSlice";
+import { Entypo } from "@expo/vector-icons";
+import {
+  fetchData,
+  getCategories,
+  getSearchData,
+} from "../redux/reducers/UserSlice";
 import {
   SearchBar,
   ButtonWithIcon,
@@ -25,40 +30,23 @@ const HomeScreen = ({ navigation }) => {
   const refreshing = false;
   const dispatch = useDispatch();
   const [availableData, setAvailableData] = useState();
-  const { location, data, categories } = useSelector(
+  const { location, data, categories, postalCode, searchResults } = useSelector(
     (state) => state.UserSlice
   );
   const [loading, setLoading] = useState(false);
-  console
-    .log
-    // "location",
-    // location,
-    // "loading",
-    // loading,
-    // "data",
-    // data,
-    // "availableData",
-    // availableData
-    ();
-
-  // console.log("categories", categories);
-
-  // useEffect(() => {
-  //   const backHandler = BackHandler.addEventListener(
-  //     "hardwareBackPress",
-  //     () => true
-  //   );
-  //   return () => backHandler.remove();
-  // }, []);
-
+  console.log("location", location, "searchResults", searchResults);
   const fetchingData = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
         "https://online-foods.herokuapp.com/food/availability/400012"
       );
+      const searchResponse = await axios.get(
+        `https://online-foods.herokuapp.com/food/search/${postalCode}`
+      );
       setAvailableData(response?.data);
       dispatch(getCategories(response?.data));
+      dispatch(getSearchData(searchResponse?.data));
       setLoading(false);
     } catch (error) {
       setLoading(true);
@@ -82,21 +70,26 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.navigation}>
         <View
           style={{
+            flexDirection: "row",
+
+            justifyContent: "center",
             marginTop: 50,
             flex: 4,
             backgroundColor: "#f0f1f5",
             paddingLeft: 20,
             paddingRight: 20,
             alignItems: "flex-start",
-            justifyContent: "center",
-            flexDirection: "row",
           }}
         >
-          <Text style={{ fontWeight: "700", fontSize: 16 }}>{location}</Text>
+          <Entypo name="location-pin" size={24} color="red" />
+          <Text style={{ fontWeight: "700", fontSize: 16, color: "grey" }}>
+            {location}
+          </Text>
         </View>
         <View
           style={{
             height: 60,
+
             justifyContent: "space-around",
             flexDirection: "row",
             alignItems: "center",
@@ -188,7 +181,6 @@ const HomeScreen = ({ navigation }) => {
           </ScrollView>
         )}
       </View>
-      {/* <View style={styles.footer}></View> */}
     </View>
   );
 };
@@ -201,13 +193,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f1f5",
   },
   navigation: {
-    flex: 2,
+    flex: 2.2,
   },
   body: {
     flex: 9,
     justifyContent: "center",
-  },
-  footer: {
-    flex: 1,
   },
 });

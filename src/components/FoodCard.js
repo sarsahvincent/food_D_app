@@ -9,7 +9,11 @@ import {
 import React from "react";
 import { ButtonAddRemove } from "./ButtonAddRemove";
 
-const FoodCard = ({ item, onTap }) => {
+const FoodCard = ({ item, onTap, onUpdateCart }) => {
+  const didUpdateCart = (unit) => {
+    item.unit = unit;
+    onUpdateCart(item);
+  };
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -26,22 +30,34 @@ const FoodCard = ({ item, onTap }) => {
             backgroundColor: "#eaeaea",
           }}
         />
-        <View style={{ flex: 8, padding: 10 }}>
+        <View style={{ flex: 1, padding: 10 }}>
           <Text>{item?.name}</Text>
           <Text>{item?.category}</Text>
         </View>
         <View
           style={{
-            flex: 4,
+            flex: 1,
             padding: 10,
             justifyContent: "space-around",
             alignItems: "center",
+            marginRight: 5,
           }}
         >
-          <Text style={{ fontSize: 10, fontWeight: "600", color: "#7c7c7c" }}>
-            {item?.price}
+          <Text style={{ fontSize: 12, fontWeight: "700", color: "#7c7c7c" }}>
+            ${isNaN(item?.unit) ? item?.price : item.price * item?.unit}
           </Text>
-          <ButtonAddRemove onTap={() => {}} />
+          <ButtonAddRemove
+            item={item}
+            onAdd={() => {
+              let unit = isNaN(item?.unit) ? 0 : item?.unit;
+              didUpdateCart(unit + 1);
+            }}
+            onRemove={() => {
+              let unit = isNaN(item?.unit) ? 0 : item?.unit;
+              didUpdateCart(unit > 0 ? unit - 1 : unit);
+            }}
+            unit={item?.unit}
+          />
         </View>
       </TouchableOpacity>
     </View>
@@ -54,10 +70,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     flex: 1,
-    width: Dimensions.get("screen").width - 20,
+    width:
+      Dimensions.get("screen").width - Dimensions.get("screen").width * 0.1,
     margin: 20,
     borderRadius: 20,
     backgroundColor: "#fff",
+    alignItems: "center",
     height: 100,
     justifyContent: "flex-start",
     borderWidth: 1,
