@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { FoodCard } from "../components";
+import { FoodCard, ButtonWithTitle } from "../components";
 import { COLORS } from "../constants/constants";
 import { getCartItems, getTotals } from "../redux/reducers/UserSlice";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -103,33 +103,8 @@ const CartPageScreen = ({ navigation }) => {
               ${cartTotalAmount}
             </Text>
           </View>
-          <View style={{ alignItems: "center", justifyContent: "center" }}>
-            <TouchableOpacity
-              onPress={validateUser}
-              activeOpacity={0.7}
-              style={{
-                marginTop: 10,
-                justifyContent: "center",
-                borderRadius: 20,
-                backgroundColor: COLORS.primary,
-                width:
-                  Dimensions.get("screen").width -
-                  Dimensions.get("screen").width * 0.1,
-                height: 50,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "600",
-                  color: COLORS.white,
-                  textAlign: "center",
-                }}
-              >
-                Order Now
-              </Text>
-            </TouchableOpacity>
-          </View>
+
+          <ButtonWithTitle title="Order Now" onTap={validateUser} />
         </View>
       )}
     </View>

@@ -15,6 +15,7 @@ import CartScreen from "../screens/CartScreen";
 import AccountScreen from "../screens/AccountScreen";
 import { COLORS } from "../constants/constants";
 import { useSelector } from "react-redux";
+import OrderPageScreen from "../screens/OrderScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -56,6 +57,7 @@ function HomeScreens() {
       <Stack.Screen name="RestaurantPage" component={RestaurantScreen} />
       <Stack.Screen name="FoodDetailsPage" component={FoodDetailsScreen} />
       <Stack.Screen name="LoginPage" component={LoginScreen} />
+      <Stack.Screen name="OrderPage" component={OrderPageScreen} />
     </Stack.Navigator>
   );
 }

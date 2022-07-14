@@ -74,13 +74,12 @@ const styles = StyleSheet.create({
       Dimensions.get("screen").width - Dimensions.get("screen").width * 0.1,
     margin: 20,
     borderRadius: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     alignItems: "center",
     height: 100,
     justifyContent: "flex-start",
     borderWidth: 1,
     borderColor: "#e5e5e5",
-
     shadowColor: "#a2abbc",
     shadowOffset: {
       width: 0,
@@ -88,6 +87,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.36,
     shadowRadius: 6.68,
-    elevation: 10,
+    elevation: 5,
   },
 });

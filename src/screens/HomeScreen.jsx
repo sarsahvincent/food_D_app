@@ -2,7 +2,6 @@ import {
   StyleSheet,
   Text,
   View,
-  BackHandler,
   RefreshControl,
   ActivityIndicator,
   ScrollView,

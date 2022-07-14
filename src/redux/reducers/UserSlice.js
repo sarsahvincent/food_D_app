@@ -7,6 +7,8 @@ const UserSlice = createSlice({
     searchData: [],
     location: {},
     cart: {},
+    user: {},
+    token: "",
     cartTotalUnit: 0,
     cartTotalAmount: 0,
     postalCode: "",
@@ -16,6 +18,12 @@ const UserSlice = createSlice({
     error: null,
   },
   reducers: {
+    getToken(state, action) {
+      state.token = action.payload;
+    },
+    getUserDetails(state, action) {
+      state.user = action.payload;
+    },
     getLocationDetails(state, action) {
       state.location = action.payload;
     },
@@ -114,6 +122,8 @@ export const {
   getSearchData,
   getPostalCode,
   addToCart,
+  getToken,
+  getUserDetails,
   getTotals,
   decreaseCart,
   getLocationDetails,
