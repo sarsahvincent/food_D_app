@@ -4,3 +4,4 @@ export * from "./ButtonWithIcon";
 export * from "./FoodCard";
 export * from "./ButtonAddRemove";
 export * from "./RestaurantCard";
+export * from "./Textfield";

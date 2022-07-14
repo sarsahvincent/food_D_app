@@ -44,7 +44,7 @@ const FoodCard = ({ item, onTap, onUpdateCart }) => {
           }}
         >
           <Text style={{ fontSize: 12, fontWeight: "700", color: "#7c7c7c" }}>
-            ${isNaN(item?.unit) ? item?.price : item.price * item?.unit}
+            ${isNaN(item?.unit) ? item?.price : item.price}
           </Text>
           <ButtonAddRemove
             item={item}
@@ -80,5 +80,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     borderWidth: 1,
     borderColor: "#e5e5e5",
+
+    shadowColor: "#a2abbc",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.36,
+    shadowRadius: 6.68,
+    elevation: 10,
   },
 });

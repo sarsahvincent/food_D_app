@@ -10,6 +10,7 @@ import FoodDetailsScreen from "../screens/FoodDetailsScreen";
 import RestaurantScreen from "../screens/RestaurantScreen";
 import SearchPageScreen from "../screens/SearchPageScreen";
 import OfferScreen from "../screens/OfferScreen";
+import LoginScreen from "../screens/LoginScreen";
 import CartScreen from "../screens/CartScreen";
 import AccountScreen from "../screens/AccountScreen";
 import { COLORS } from "../constants/constants";
@@ -54,6 +55,7 @@ function HomeScreens() {
       <Stack.Screen name="SearchPage" component={SearchPageScreen} />
       <Stack.Screen name="RestaurantPage" component={RestaurantScreen} />
       <Stack.Screen name="FoodDetailsPage" component={FoodDetailsScreen} />
+      <Stack.Screen name="LoginPage" component={LoginScreen} />
     </Stack.Navigator>
   );
 }

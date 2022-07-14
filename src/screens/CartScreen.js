@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,24 +8,27 @@ import {
   Dimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { ButtonWithIcon, FoodCard, SearchBar } from "../components";
-import { Ionicons } from "@expo/vector-icons";
+import { FoodCard } from "../components";
 import { COLORS } from "../constants/constants";
-import { chekExistance } from "../utils/CartHelper";
-import { getCartItems } from "../redux/reducers/UserSlice";
+import { getCartItems, getTotals } from "../redux/reducers/UserSlice";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const CartPageScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const [keyword, setKeyword] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
 
-  const { searchData, cart } = useSelector((state) => state.UserSlice);
+  const { cartTotalAmount, cart } = useSelector((state) => state.UserSlice);
 
   const onTapFood = (item) => {
-    navigation.navigate("FoodDetailsPage", { food: item });
+    navigation.navigate("Cart", { food: item });
   };
-  console.log("cart", cart);
+
+  const validateUser = () => {
+    navigation.navigate("LoginPage");
+  };
+
+  useEffect(() => {
+    dispatch(getTotals());
+  }, [cart]);
 
   return (
     <View style={styles.container}>
@@ -97,11 +100,12 @@ const CartPageScreen = ({ navigation }) => {
               Total
             </Text>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "black" }}>
-              $000
+              ${cartTotalAmount}
             </Text>
           </View>
           <View style={{ alignItems: "center", justifyContent: "center" }}>
             <TouchableOpacity
+              onPress={validateUser}
               activeOpacity={0.7}
               style={{
                 marginTop: 10,

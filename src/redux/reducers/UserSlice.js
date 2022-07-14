@@ -7,6 +7,8 @@ const UserSlice = createSlice({
     searchData: [],
     location: {},
     cart: {},
+    cartTotalUnit: 0,
+    cartTotalAmount: 0,
     postalCode: "",
     loading: false,
     status: null,
@@ -87,6 +89,21 @@ const UserSlice = createSlice({
         };
       }
     },
+
+    getTotals(state) {
+      let allTotals = [];
+      if (state?.cart.length > 0) {
+        state?.cart?.map((item, _) => {
+          let itemTotal = item?.unit * item?.price;
+          allTotals.push(itemTotal);
+        });
+        let sum = allTotals.reduce(function (previousValue, currentValue) {
+          return previousValue + currentValue;
+        }, 0);
+
+        state.cartTotalAmount = sum;
+      }
+    },
   },
 
   extraReducers: {},
@@ -97,6 +114,7 @@ export const {
   getSearchData,
   getPostalCode,
   addToCart,
+  getTotals,
   decreaseCart,
   getLocationDetails,
   fetchData,
