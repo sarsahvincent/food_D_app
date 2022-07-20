@@ -19,6 +19,18 @@ import { COLORS } from "../constants/constants";
 import { getToken, getUserDetails } from "../redux/reducers/UserSlice";
 
 const LoginScreen = ({ navigation }) => {
+  const { token, user } = useSelector((state) => state.UserSlice);
+
+  console.log(
+    "emai",
+    user?.email,
+    "verified",
+    user?.verified,
+    "token",
+    token,
+    "user",
+    user
+  );
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -29,13 +41,12 @@ const LoginScreen = ({ navigation }) => {
 
   //verification hooks
   const [otp, setOtp] = useState("");
-  const [verified, setVarified] = useState(false);
+  const [verified, setVarified] = useState(true);
   const [requestsOtpTitle, setRequestOtpTitle] = useState(
     "Request a New OTP in"
   );
   const [canRequestOtp, setCanRequestOtp] = useState(false);
 
-  const { token } = useSelector((state) => state.UserSlice);
   const onUserLogin = async () => {
     try {
       setLoading(true);
@@ -49,7 +60,7 @@ const LoginScreen = ({ navigation }) => {
       dispatch(getToken(response?.data?.token));
       dispatch(getUserDetails(response?.data));
       if (response?.data?.token) {
-        navigation.navigate("OrderPage");
+        navigation.navigate("Cart");
       }
       setPassword("");
       setEmail("");
@@ -59,18 +70,22 @@ const LoginScreen = ({ navigation }) => {
       console.log(error);
     }
   };
+
   const onUserSignUp = async () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://online-foods.herokuapp.com/user/signup",
+        "https://online-foods.herokuapp.com/user/create-account",
         {
           email,
           phone,
           password,
         }
       );
-      console.log("response", response);
+      dispatch(getToken(response?.data?.token));
+      dispatch(getUserDetails(response?.data));
+      navigation.navigate("Cart");
+      // console.log("response", response);
       setPhone("");
       setPassword("");
       setEmail("");
@@ -88,13 +103,21 @@ const LoginScreen = ({ navigation }) => {
 
   let countDown;
 
+  console.log();
   useEffect(() => {
+    if (user?.verified !== undefined) {
+      if (user?.verified === true) {
+        navigation.navigate("Cart");
+      } else {
+        setVarified(user.verified);
+        onEnableOtpRequest();
+      }
+    }
     //check for start timer
-    onEnableOtpRequest();
     return () => {
       clearInterval(countDown);
     };
-  }, []);
+  }, [user]);
 
   const onTapauthenticate = () => {
     if (isSignUp) {
@@ -146,90 +169,121 @@ const LoginScreen = ({ navigation }) => {
     }, 1000);
   };
 
-  if (!verified) {
-    return (
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <View style={styles.body}>
-            <Octicons name="verified" size={100} color="#1ac2ff" />
-            <Text style={{ fontSize: 20, fontWeight: "500", margin: 10 }}>
-              Verification
-            </Text>
-            <Text
-              style={{
-                fontSize: 16,
-                padding: 10,
-                marginBottom: 20,
-                color: "#716f6f",
-              }}
-            >
-              Enter the OTP sent to your mobile number
-            </Text>
+  const requestOTP = async () => {
+    try {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const response = await axios.patch(
+        `https://online-foods.herokuapp.com/user/verify`
+      );
+      console.log("response", response);
+    } catch (err) {}
+  };
 
+  const onVerifyOTP = async () => {
+    try {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const response = await axios.patch(
+        `https://online-foods.herokuapp.com/user/verify`,
+        {
+          otp,
+        }
+      );
+      console.log("response", response);
+    } catch (err) {}
+  };
+
+  const onTapVerify = () => {
+    onVerifyOTP();
+  };
+
+  const onTapReqeustNewOTP = () => {
+    setCanRequestOtp(false);
+    requestOTP();
+  };
+
+  // if (!token) {
+  //   return (
+  //     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+  //       <View style={styles.container}>
+  //         <View style={styles.body}>
+  //           <Octicons name="verified" size={100} color="#1ac2ff" />
+  //           <Text style={{ fontSize: 20, fontWeight: "500", margin: 10 }}>
+  //             Verification
+  //           </Text>
+  //           <Text
+  //             style={{
+  //               fontSize: 16,
+  //               padding: 10,
+  //               marginBottom: 20,
+  //               color: "#716f6f",
+  //             }}
+  //           >
+  //             Enter the OTP sent to your mobile number
+  //           </Text>
+
+  //           <Textfield
+  //             inSecure={true}
+  //             isOTP={true}
+  //             type="numeric"
+  //             placeholder="OTP"
+  //             onTextChange={setOtp}
+  //           />
+  //           <ButtonWithTitle title="Verify OTP" onTap={onTapVerify} />
+  //           <ButtonWithTitle
+  //             title={requestsOtpTitle}
+  //             isNoBg={true}
+  //             onTap={onTapReqeustNewOTP}
+  //             disabled={!canRequestOtp}
+  //           />
+  //         </View>
+  //       </View>
+  //     </TouchableWithoutFeedback>
+  //   );
+  // } else {
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <View style={styles.navigation}>
+          <Text style={{ fontSize: 30, fontWeight: "bold" }}>
+            {!isSignUp ? "Login" : "Sign Up"}
+          </Text>
+        </View>
+        <View style={styles.body}>
+          <Textfield
+            placeholder="Email"
+            type="email-address"
+            onTextChange={setEmail}
+          />
+          {isSignUp && (
             <Textfield
-              inSecure={true}
-              isOTP={true}
+              placeholder="Phone"
               type="numeric"
-              placeholder="OTP"
-              onTextChange={() => {}}
+              onTextChange={setPhone}
             />
-            <ButtonWithTitle title="Verify OTP" onTap={() => {}} />
-            <ButtonWithTitle
-              title={requestsOtpTitle}
-              isNoBg={true}
-              onTap={() => {}}
-              disabled={!canRequestOtp}
-            />
-          </View>
+          )}
+          <Textfield
+            placeholder="Password"
+            inSecure={true}
+            onTextChange={setPassword}
+          />
+          {loading ? (
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          ) : (
+            <ButtonWithTitle title={title} onTap={onTapauthenticate} />
+          )}
+          <ButtonWithTitle
+            title={
+              !isSignUp
+                ? "No Account ? SignUp Here"
+                : "Have an Account? Login Here"
+            }
+            onTap={toggleUserSignInSignUp}
+            isNoBg={true}
+          />
         </View>
-      </TouchableWithoutFeedback>
-    );
-  } else {
-    return (
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <View style={styles.navigation}>
-            <Text style={{ fontSize: 30, fontWeight: "bold" }}>
-              {!isSignUp ? "Login" : "Sign Up"}
-            </Text>
-          </View>
-          <View style={styles.body}>
-            <Textfield
-              placeholder="Email"
-              type="email-address"
-              onTextChange={setEmail}
-            />
-            {isSignUp && (
-              <Textfield
-                placeholder="Phone"
-                type="numeric"
-                onTextChange={setPhone}
-              />
-            )}
-            <Textfield
-              placeholder="Password"
-              inSecure={true}
-              onTextChange={setPassword}
-            />
-            {loading ? (
-              <ActivityIndicator size="large" color={COLORS.primary} />
-            ) : (
-              <ButtonWithTitle title={title} onTap={onTapauthenticate} />
-            )}
-            <ButtonWithTitle
-              title={
-                !isSignUp
-                  ? "No Account ? SignUp Here"
-                  : "Have an Account? Login Here"
-              }
-              onTap={toggleUserSignInSignUp}
-              isNoBg={true}
-            />
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
-    );
-  }
+      </View>
+    </TouchableWithoutFeedback>
+  );
 };
 
 export default LoginScreen;

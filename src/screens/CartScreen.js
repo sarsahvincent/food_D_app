@@ -1,32 +1,156 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createRef } from "react";
 import {
   StyleSheet,
   View,
   Text,
+  ScrollView,
   TouchableOpacity,
   FlatList,
   Dimensions,
+  Image,
 } from "react-native";
+import { Entypo } from "@expo/vector-icons";
+
 import { useSelector, useDispatch } from "react-redux";
 import { FoodCard, ButtonWithTitle } from "../components";
 import { COLORS } from "../constants/constants";
 import { getCartItems, getTotals } from "../redux/reducers/UserSlice";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import PaymentTypePopUp from "react-native-raw-bottom-sheet";
 
 const CartPageScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
-  const { cartTotalAmount, cart } = useSelector((state) => state.UserSlice);
+  const { cartTotalAmount, cart, token, user, location } = useSelector(
+    (state) => state.UserSlice
+  );
 
+  console.log("cart", cart);
   const onTapFood = (item) => {
     navigation.navigate("Cart", { food: item });
   };
 
   const validateUser = () => {
-    navigation.navigate("LoginPage");
+    if (!token) {
+      navigation.navigate("LoginPage");
+    } else {
+      popupRef.current?.open();
+    }
   };
 
+  const popupRef = createRef();
+
+  const createOrder = () => {
+    let cartItems = new Array();
+
+    cart.map((item) => {
+      cartItems.push({ _id: item._id, unit: item.unit });
+    });
+
+    return async () => {
+      try {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const response = await axios.patch(
+          `https://online-foods.herokuapp.com/user/create-order`
+        );
+        console.log("response", response);
+      } catch (err) {}
+    };
+  };
+
+  const onTapPlaceOrder = () => {
+    createOrder();
+  };
+
+  const popupView = () => {
+    return (
+      <PaymentTypePopUp
+        height={400}
+        ref={popupRef}
+        closeOnDragDown={true}
+        closeOnPressMask={true}
+        customStyles={{
+          wrapper: {
+            backgroundColor: "transparent",
+          },
+          draggableIcon: {
+            backgroundColor: "#000",
+          },
+          container: {
+            justifyContent: "flex-start",
+            alignItems: "center",
+          },
+        }}
+      >
+        <View
+          style={{
+            justifyContent: "space-around",
+            width: "100%",
+          }}
+        >
+          <View style={styles.paymentView}>
+            <Text style={{ fontSize: 20 }}>Payable</Text>
+            <Text style={{ fontSize: 20, fontWeight: "600" }}>
+              ${cartTotalAmount.toFixed(2)}
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row", height: 100, padding: 20 }}>
+            <Entypo name="location" size={40} color="red" />
+            <View style={{ marginLeft: 5 }}>
+              <Text
+                style={{ fontSize: 16, fontWeight: "600", marginBottom: 6 }}
+              >
+                Address Used to Delivery
+              </Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "600",
+                  marginBottom: 6,
+                  color: "#666666",
+                  width: Dimensions.get("screen").width - 60,
+                }}
+              >
+                {location}
+              </Text>
+            </View>
+          </View>
+          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+            <View style={styles.paymentOptions}>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("OrderPage");
+                }}
+                style={styles.options}
+              >
+                <Image
+                  style={styles.icon}
+                  source={require("../../assets/fast.png")}
+                />
+                <Text style={styles.optionText}>Cash On Delivery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.options}>
+                <Image
+                  style={styles.icon}
+                  source={require("../../assets/momo.png")}
+                />
+                <Text style={styles.optionText}>Mobile Money</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.options}>
+                <Image
+                  style={styles.icon}
+                  source={require("../../assets/visa_master.png")}
+                />
+                <Text style={styles.optionText}>Card Payment</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </PaymentTypePopUp>
+    );
+  };
   useEffect(() => {
+    createOrder();
     dispatch(getTotals());
   }, [cart]);
 
@@ -103,10 +227,10 @@ const CartPageScreen = ({ navigation }) => {
               ${cartTotalAmount}
             </Text>
           </View>
-
           <ButtonWithTitle title="Order Now" onTap={validateUser} />
         </View>
       )}
+      {popupView()}
     </View>
   );
 };
@@ -137,5 +261,41 @@ const styles = StyleSheet.create({
     alignContent: "center",
     justifyContent: "center",
     margin: 0,
+  },
+  paymentView: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10,
+    margin: 5,
+    backgroundColor: "#e3be74",
+  },
+  options: {
+    height: 120,
+    width: 160,
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "column",
+    padding: 10,
+    borderColor: "#a0a0a0",
+    backgroundColor: "#f2f2f2",
+    borderWidth: 0.2,
+    borderRadius: 10,
+    margin: 10,
+  },
+  paymentOptions: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingLeft: 20,
+  },
+  icon: {
+    width: 115,
+    height: 80,
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#545252",
   },
 });
