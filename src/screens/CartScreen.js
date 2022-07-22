@@ -43,7 +43,7 @@ const CartPageScreen = ({ navigation }) => {
   const createOrder = () => {
     let cartItems = new Array();
 
-    cart.map((item) => {
+    cart?.map((item) => {
       cartItems.push({ _id: item._id, unit: item.unit });
     });
 
@@ -150,7 +150,6 @@ const CartPageScreen = ({ navigation }) => {
     );
   };
   useEffect(() => {
-    createOrder();
     dispatch(getTotals());
   }, [cart]);
 
