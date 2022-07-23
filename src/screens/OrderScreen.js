@@ -7,24 +7,55 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
+  ActivityIndicator,
   Image,
 } from "react-native";
-import { Entypo } from "@expo/vector-icons";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
+import { db } from "../../firebse";
 
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
-import { FoodCard, ButtonWithTitle, ButtonWithIcon } from "../components";
+import {
+  FoodCard,
+  OrderCard,
+  ButtonWithTitle,
+  ButtonWithIcon,
+} from "../components";
 import { COLORS } from "../constants/constants";
-import { getCartItems, getTotals } from "../redux/reducers/UserSlice";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  getCartItems,
+  getTotals,
+  getMyOrders,
+} from "../redux/reducers/UserSlice";
 import PaymentTypePopUp from "react-native-raw-bottom-sheet";
 
-const OrderPageScreen = ({ navigation }) => {
-  const dispatch = useDispatch();
+function randomString(length) {
+  let chars =
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz".split("");
 
-  const { cartTotalAmount, cart, token, user, location } = useSelector(
+  if (!length) {
+    length = Math.floor(Math.random() * chars.length);
+  }
+
+  let str = "";
+  for (let i = 0; i < length; i++) {
+    str += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return str;
+}
+
+const OrderPageScreen = ({ navigation }) => {
+  const [loading, setLoading] = useState(false);
+  const [userOrders, setUserOrders] = useState([]);
+  const dispatch = useDispatch();
+  const ordersCollectiion = collection(db, "FOOD_ORDER_APP_ORDERS");
+  const { cartTotalAmount, cart, token, user, orders, location } = useSelector(
     (state) => state.UserSlice
   );
 
+  // console.log("orders", orders);
+  // console.log("token", token);
+  console.log("userOrders", userOrders);
   const onTapFood = (item) => {
     navigation.navigate("Cart", { food: item });
   };
@@ -38,6 +69,79 @@ const OrderPageScreen = ({ navigation }) => {
   };
 
   const popupRef = createRef();
+
+  const createOrder = async () => {
+    const data = {
+      uuid: token,
+      date: new Date(),
+      orderId: randomString(8),
+      total: cartTotalAmount,
+      orderStatus: "Waiting",
+    };
+    console.log("data", data);
+    setLoading(true);
+
+    try {
+      await setDoc(doc(db, "FOOD_ORDER_APP_ORDERS", token), data);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      Alert.alert("Error", err.message, [
+        {
+          text: "Cancel",
+
+          style: "cancel",
+        },
+        { text: "OK" },
+      ]);
+    }
+  };
+
+  // const createOrder = () => {
+  //   let cartItems = new Array();
+
+  //   cart?.map((item) => {
+  //     cartItems.push({ _id: item._id, unit: item.unit });
+  //   });
+
+  //   setLoading(true);
+  //   return async () => {
+  //     try {
+  //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  //       const response = await axios.patch(
+  //         `https://online-foods.herokuapp.com/user/create-order`,
+  //         { cart }
+  //       );
+  //       setLoading(false);
+  //       console.log("response", response);
+  //       setLoading(false);
+  //     } catch (err) {}
+  //   };
+  // };
+
+  const getOrders = async () => {
+    setLoading(true);
+    try {
+      const data = await getDocs(ordersCollectiion);
+
+      const allOrders = data?.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+
+      console.log(("allOrders", allOrders));
+
+      setUserOrders(allOrders?.filter((order) => order?.uuid === token));
+      dispatch(getMyOrders(JSON.stringify(userOrders)));
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+    }
+  };
+
+  const onTapPlaceOrder = () => {
+    createOrder();
+  };
 
   const popupView = () => {
     return (
@@ -125,6 +229,10 @@ const OrderPageScreen = ({ navigation }) => {
     dispatch(getTotals());
   }, [cart]);
 
+  useEffect(() => {
+    getOrders();
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.navigation}>
@@ -152,6 +260,14 @@ const OrderPageScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
+
+      {userOrders && (
+        <View style={{ flex: 3, marginTop: 20 }}>
+          {userOrders?.map((order) => (
+            <OrderCard order={order} />
+          ))}
+        </View>
+      )}
 
       {cart.length > 0 ? (
         <View style={styles.body}>
@@ -197,7 +313,11 @@ const OrderPageScreen = ({ navigation }) => {
               ${cartTotalAmount}
             </Text>
           </View>
-          <ButtonWithTitle title="Order Now" onTap={validateUser} />
+          {loading ? (
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          ) : (
+            <ButtonWithTitle title="Order Now" onTap={createOrder} />
+          )}
         </View>
       )}
       {popupView()}

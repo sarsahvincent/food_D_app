@@ -4,34 +4,38 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
-  KeyboardAvoidingView,
   ActivityIndicator,
   TouchableWithoutFeedback,
   Keyboard,
-  Platform,
   Alert,
 } from "react-native";
+import { db, auth } from "../../firebse";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 import { useSelector, useDispatch } from "react-redux";
-import { Octicons } from "@expo/vector-icons";
 import { ButtonWithTitle, Textfield } from "../components";
 import { COLORS } from "../constants/constants";
 import { getToken, getUserDetails } from "../redux/reducers/UserSlice";
 
 const LoginScreen = ({ navigation }) => {
   const { token, user } = useSelector((state) => state.UserSlice);
-
   console.log(
-    "emai",
-    user?.email,
-    "verified",
-    user?.verified,
+    // "emai",
+    // user?.email,
+    // "verified",
+    // user?.verified,
     "token",
     token,
     "user",
     user
   );
   const dispatch = useDispatch();
+  const [currentUserDetails, setCurrentUserDetails] = useState();
+  console.log("currentUserDetails", currentUserDetails);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,29 +51,152 @@ const LoginScreen = ({ navigation }) => {
   );
   const [canRequestOtp, setCanRequestOtp] = useState(false);
 
-  const onUserLogin = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.post(
-        "https://online-foods.herokuapp.com/user/login",
+  const usersCollectiion = collection(db, "FOOD_ORDER_APP_USRS");
+  const handleSubmitSignup = async () => {
+    if (!email || !password) {
+      Alert.alert("Allert", "All fields are required.", [
         {
+          text: "Cancel",
+
+          style: "cancel",
+        },
+        { text: "OK" },
+      ]);
+    } else {
+      try {
+        setLoading(true);
+        const result = await createUserWithEmailAndPassword(
+          auth,
           email,
-          password,
-        }
-      );
-      dispatch(getToken(response?.data?.token));
-      dispatch(getUserDetails(response?.data));
-      if (response?.data?.token) {
+          password
+        );
+
+        await setDoc(doc(db, "FOOD_ORDER_APP_USRS", result.user.uid), {
+          uuid: result.user.uid,
+          email: email,
+          img: "",
+          last_salary: "",
+          avatarPath: "",
+          phone,
+        });
+
+        const data = await getDocs(usersCollectiion);
+        const allUsers = data?.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setCurrentUserDetails(
+          allUsers?.find((logginUser) => logginUser?.uuid === result.user.uid)
+        );
+        dispatch(getUserDetails(currentUserDetails));
+        dispatch(getToken(result?.user?.uid));
+        setPassword("");
+        setEmail("");
+        setLoading(false);
         navigation.navigate("Cart");
+      } catch (err) {
+        setLoading(false);
+        if (err.message === "Firebase: Error (auth/invalid-email).") {
+          Alert.alert("Error", "Invalid Email or Password", [
+            {
+              text: "Cancel",
+
+              style: "cancel",
+            },
+            { text: "OK" },
+          ]);
+        } else {
+          Alert.alert("Error", err.message, [
+            {
+              text: "Cancel",
+
+              style: "cancel",
+            },
+            { text: "OK" },
+          ]);
+        }
       }
-      setPassword("");
-      setEmail("");
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.log(error);
     }
   };
+  const handleSubmitLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Allert", "All fields are required.", [
+        {
+          text: "Cancel",
+
+          style: "cancel",
+        },
+        { text: "OK" },
+      ]);
+    } else {
+      try {
+        setLoading(true);
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        const data = await getDocs(usersCollectiion);
+        dispatch(getToken(result?.user?.uid));
+        const allUsers = data?.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+
+        setCurrentUserDetails(
+          allUsers?.find((logginUser) => logginUser?.uuid === result.user.uid)
+        );
+        console.log("allUsers", allUsers);
+        dispatch(getUserDetails(JSON.stringify(currentUserDetails)));
+        dispatch(getToken(result?.user?.uid));
+        setPassword("");
+        setEmail("");
+        setLoading(false);
+        navigation.navigate("Cart");
+      } catch (err) {
+        setLoading(false);
+        if (err.message === "Firebase: Error (auth/invalid-email).") {
+          Alert.alert("Error", "Invalid Email or Password", [
+            {
+              text: "Cancel",
+
+              style: "cancel",
+            },
+            { text: "OK" },
+          ]);
+        } else {
+          Alert.alert("Error", err.message, [
+            {
+              text: "Cancel",
+
+              style: "cancel",
+            },
+            { text: "OK" },
+          ]);
+        }
+      }
+    }
+  };
+
+  // const onUserLogin = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await axios.post(
+  //       "https://online-foods.herokuapp.com/user/login",
+  //       {
+  //         email,
+  //         password,
+  //       }
+  //     );
+  //     dispatch(getToken(response?.data?.token));
+  //     dispatch(getUserDetails(response?.data));
+  //     if (response?.data?.token) {
+  //       navigation.navigate("Cart");
+  //     }
+  //     setPassword("");
+  //     setEmail("");
+  //     setLoading(false);
+  //   } catch (error) {
+  //     setLoading(false);
+  //     console.log(error);
+  //   }
+  // };
 
   const onUserSignUp = async () => {
     try {
@@ -103,7 +230,6 @@ const LoginScreen = ({ navigation }) => {
 
   let countDown;
 
-  console.log();
   useEffect(() => {
     if (user?.verified !== undefined) {
       if (user?.verified === true) {
@@ -119,7 +245,7 @@ const LoginScreen = ({ navigation }) => {
     };
   }, [user]);
 
-  const onTapauthenticate = () => {
+  /*   const onTapauthenticate = () => {
     if (isSignUp) {
       if (email === "" || phone === "" || password === "") {
         Alert.alert("Alert", "All fields are require", [
@@ -146,6 +272,14 @@ const LoginScreen = ({ navigation }) => {
       } else {
         onUserLogin();
       }
+    }
+  }; */
+
+  const onTapauthenticate = () => {
+    if (isSignUp) {
+      handleSubmitSignup();
+    } else {
+      handleSubmitLogin();
     }
   };
 

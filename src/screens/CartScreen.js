@@ -40,28 +40,6 @@ const CartPageScreen = ({ navigation }) => {
 
   const popupRef = createRef();
 
-  const createOrder = () => {
-    let cartItems = new Array();
-
-    cart?.map((item) => {
-      cartItems.push({ _id: item._id, unit: item.unit });
-    });
-
-    return async () => {
-      try {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        const response = await axios.patch(
-          `https://online-foods.herokuapp.com/user/create-order`
-        );
-        console.log("response", response);
-      } catch (err) {}
-    };
-  };
-
-  const onTapPlaceOrder = () => {
-    createOrder();
-  };
-
   const popupView = () => {
     return (
       <PaymentTypePopUp
@@ -174,11 +152,13 @@ const CartPageScreen = ({ navigation }) => {
               My Cart
             </Text>
           </View>
-          <MaterialCommunityIcons
-            name="truck-delivery"
-            size={40}
-            color={COLORS.primary}
-          />
+          {cart.length > 0 && (
+            <MaterialCommunityIcons
+              name="truck-delivery"
+              size={40}
+              color={COLORS.primary}
+            />
+          )}
         </View>
       </View>
 

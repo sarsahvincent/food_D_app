@@ -5,6 +5,7 @@ const UserSlice = createSlice({
     data: {},
     categories: [],
     searchData: [],
+    orders: [],
     location: {},
     cart: {},
     user: {},
@@ -26,6 +27,9 @@ const UserSlice = createSlice({
     },
     getLocationDetails(state, action) {
       state.location = action.payload;
+    },
+    getMyOrders(state, action) {
+      state.orders = action.payload;
     },
     getPostalCode(state, action) {
       state.postalCode = action.payload;
@@ -119,6 +123,7 @@ const UserSlice = createSlice({
 
 export const {
   getCategories,
+  getMyOrders,
   getSearchData,
   getPostalCode,
   addToCart,
